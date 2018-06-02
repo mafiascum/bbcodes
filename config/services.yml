@@ -1,0 +1,17 @@
+services:
+    mafiascum.bbcodes.listener:
+        class: mafiascum\bbcodes\event\main_listener
+        arguments:
+            - '@controller.helper'
+            - '@template'
+            - '@request'
+            - '@dbal.conn'
+        tags:
+            - { name: event.listener }
+    mafiascum.bbcodes.helper:
+        class: mafiascum\bbcodes\includes\helper
+        arguments:
+            - '@dbal.conn'
+            - '@filesystem'
+            - '%core.root_path%'
+            - '%core.php_ext%'

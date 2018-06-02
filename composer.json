@@ -1,0 +1,26 @@
+{
+    "name": "mafiascum/bbcodes",
+    "type": "phpbb-extension",
+    "description": "Mafiascum Custom BBCodes",
+    "homepage": "https://github.com/mafiascum/bbcodes",
+    "version": "0.1.0",
+    "time": "2018-03-04",
+    "license": "GPL-2.0",
+    "authors": [{
+	"name": "Michael Mason",
+	"email": "mikemason930@gmail.com",
+	"homepage": "https://github.com/mmason930/",
+	"role": "Omerta"
+    }],
+    "require": {
+	"php": ">=5.3.3",
+	"composer/installers": "~1.0",
+        "phpbb/phpbb": ">=3.1.0-a2"
+    },
+    "extra": {
+        "display-name": "Custom BBCodes",
+        "soft-require": {
+            "phpbb/phpbb": ">=3.1.0-a2"
+        }
+    }
+}
