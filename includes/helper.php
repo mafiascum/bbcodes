@@ -63,17 +63,25 @@ class helper
 	 */
 	public function install_bbcode($data)
 	{
-		// Remove conflicting BBCode
-		$this->remove_bbcode($data['bbcode_tag']);
-
-		//$data = $this->bbcode_data();
-
 		if (empty($data))
 		{
 			return;
 		}
 
-		$data['bbcode_id'] = (int) $this->bbcode_id();
+		$old_bbcode_id = (int) $this->bbcode_exists($data['bbcode_tag']);
+		if($old_bbcode_id > NUM_CORE_BBCODES)
+		{
+			return;
+		}
+
+		// Remove conflicting BBCode
+		//$this->remove_bbcode($data['bbcode_tag']);
+
+		if(!array_key_exists('bbcode_id', $data))
+		{
+			$data['bbcode_id'] = (int) $this->bbcode_id();
+		}
+		
 		$data = array_replace(
 			$data,
 			$this->acp_bbcodes->build_regexp(
@@ -81,9 +89,6 @@ class helper
 				$data['bbcode_tpl']
 			)
 		);
-
-		// Get old BBCode ID
-		$old_bbcode_id = (int) $this->bbcode_exists($data['bbcode_tag']);
 
 		// Update or add BBCode
 		if ($old_bbcode_id > NUM_CORE_BBCODES)
@@ -186,6 +191,7 @@ class helper
 
 		$sql = 'INSERT INTO ' . BBCODES_TABLE . '
 			' . $this->db->sql_build_array('INSERT', $data);
+
 		$this->db->sql_query($sql);
 
 	}
@@ -248,6 +254,7 @@ class helper
 	public function countdown_bbcode_data()
 	{
 		return [
+			'bbcode_id'		=> 1450,
 			'bbcode_tag'	=> 'countdown',
 			'bbcode_match'	=> '[countdown]{TEXT}[/countdown]',
 			'bbcode_tpl'	=> '<span class="countdown">{TEXT}</span>',
@@ -259,6 +266,7 @@ class helper
 	public function post_bbcode_data()
 	{
 		return [
+			'bbcode_id'		=> 1452,
 			'bbcode_tag'	=> 'post=',
 			'bbcode_match'	=> '[post=#{NUMBER}]{TEXT2}[/post]',
 			'bbcode_tpl'	=> '<a class="postlink post_tag" href="{SERVER_PROTOCOL}{SERVER_NAME}{SCRIPT_PATH}viewtopic.php?p={NUMBER}#p{NUMBER}">{TEXT2}</a>',
@@ -270,7 +278,8 @@ class helper
 	public function dice_bbcode_data()
 	{
 		return [
-			'bbcode_tag'	=> 'dice=',
+			'bbcode_id'		=> 1451,
+			'bbcode_tag'	=> 'dice',
 			'bbcode_match'	=> '[dice]{TEXT}[/dice]',
 			'bbcode_tpl'	=> '<span class="dice-tag-original">{TEXT}</span>',
 			'bbcode_helpline'	=> '',
