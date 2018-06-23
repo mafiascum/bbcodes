@@ -216,6 +216,8 @@ class main_listener implements EventSubscriberInterface
 						$inner_match[4]
 					);
 				}
+
+				return $in;
 			},
 			$event['html']
 		);
