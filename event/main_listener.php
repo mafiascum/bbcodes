@@ -84,6 +84,17 @@ class main_listener implements EventSubscriberInterface
 			},
 			$event['text']
 		);
+
+		$event['text'] = preg_replace_callback(
+			'/\[countdown\](.*?)\[\/countdown\]/',
+			function($matches) {
+				return $this->bbcode_countdown(
+					$matches[1],
+					$matches[2]
+				);
+			},
+			$event['text']
+		);
 	}
 
 	function configure_bbcodes($event) {
@@ -100,6 +111,62 @@ class main_listener implements EventSubscriberInterface
 			$tag->setAttribute('size', $min_size);
 
 		return true;
+	}
+
+	/**
+	 * Parse countdown tag
+	 */
+	function bbcode_countdown($in)
+	{
+		global $user, $config;
+
+		$error = true;
+		$gmtOffset = "0.00";
+
+		if(preg_match_all('/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) ?(-?\d{1,2}\.\d{1,2})?/', $in, $matches, PREG_SET_ORDER)) {
+
+			$error = false;
+			
+			$timestamp = $matches[ 0 ][1];
+			if(count($matches[ 0 ]) > 2) {
+				$gmtOffset = $matches[ 0 ][2];
+			}
+			else {
+				$gmtOffset = (float)$user->data['user_timezone'] + (int)$user->data['user_dst'];
+			}
+		}
+		else if(preg_match_all('/(\d+(?:\.\d+)?)\s+((?:day)|(?:hour)|(?:minute))s?/', $in, $matches_array, PREG_SET_ORDER)) {
+
+			$offset = 0;
+			$index = 0;
+			while($index < count($matches_array)) {
+				
+				$matches = $matches_array[$index];
+				
+				$value = $matches[ 1 ];
+				$unit = $matches[ 2 ];
+
+				if($unit == 'day') {
+					$offset += $value*60*60*24;
+				}
+				else if($unit == 'hour') {
+					$offset += $value*60*60;
+				}
+				else if($unit == 'minute') {
+					$offset += $value*60;
+				}
+				
+				++$index;
+			}
+
+			$deadline = gmdate("U") + ((-5 * 3600) + (1 * 3600)) + $offset;
+			$gmtOffset = -4;
+
+			$timestamp = gmdate("Y-m-d H:i:s", $deadline);
+		}
+		$in = trim($timestamp . " " . number_format($gmtOffset, 2));
+
+		return '[countdown]' . $in . '[/countdown]';
 	}
 
 	function bbcode_post($post_number, $in) {
