@@ -282,9 +282,10 @@ class main_listener implements EventSubscriberInterface
 		global $config;
 
 		//Used by post tag
+		$script_path = rtrim($config['script_path'], '/') . '/';
 		$event['renderer']->get_renderer()->setParameter("SERVER_PROTOCOL", $config['server_protocol']);
 		$event['renderer']->get_renderer()->setParameter("SERVER_NAME", $config['server_name']);
-		$event['renderer']->get_renderer()->setParameter("SCRIPT_PATH", $config['script_path']);
+		$event['renderer']->get_renderer()->setParameter("SCRIPT_PATH", $script_path);
 		
 		$event['xml'] = preg_replace_callback(
 			'/<s>\[countdown\]\<\/s\>(.*?)<e>\[\/countdown\]<\/e>/',
