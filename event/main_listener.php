@@ -41,6 +41,7 @@ class main_listener implements EventSubscriberInterface
 			'core.acp_ranks_save_modify_sql_ary' => 'acp_ranks_save_modify_sql_ary',
 			'core.text_formatter_s9e_configure_after' => 'configure_bbcodes',
 			'core.decode_message_before' => 'decode_message_before',
+			'core.text_formatter_s9e_parser_setup'    => 'onParserSetup'
         );
     }
 
@@ -60,7 +61,7 @@ class main_listener implements EventSubscriberInterface
 	}
 
 	public function text_formatter_s9e_parse_before($event) {
-
+		
 		$event['text'] = preg_replace_callback(
 			'/\[post=?(.*?)\](.*?)\[\/post\]/',
 			function($matches) {
@@ -97,9 +98,24 @@ class main_listener implements EventSubscriberInterface
 		);
 	}
 
+	public function onParserSetup($event)
+	{
+		$event['parser']->get_parser()->maxFixingCost = PHP_INT_MAX;
+	}
+
 	function configure_bbcodes($event) {
 		$event['configurator']->tags['SIZE']->filterChain
 		->append(array(__CLASS__, 'filter_size'));
+
+		foreach ($event['configurator']->tags as $tag)
+		{
+			$tag->nestingLimit = PHP_INT_MAX;
+			$tag->tagLimit     = PHP_INT_MAX;
+		}
+		foreach ($event['configurator']->plugins as $plugin)
+		{
+			$plugin->setRegexpLimit(PHP_INT_MAX);
+		}
 	}
 
 	static public function filter_size(\s9e\TextFormatter\Parser\Tag $tag) {
