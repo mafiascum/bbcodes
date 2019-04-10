@@ -54,6 +54,9 @@ class helper
 		$this->install_bbcode($this->countdown_bbcode_data());
 		$this->install_bbcode($this->post_bbcode_data());
 		$this->install_bbcode($this->dice_bbcode_data());
+		$this->install_bbcode($this->votecount_bbcode_data());
+		$this->install_bbcode($this->votecountbbcode_bbcode_data());
+		$this->install_bbcode($this->spoilerequals_bbcode_data());
 	}
 
 	/**
@@ -63,25 +66,17 @@ class helper
 	 */
 	public function install_bbcode($data)
 	{
+		// Remove conflicting BBCode
+		$this->remove_bbcode($data['bbcode_tag']);
+
+		//$data = $this->bbcode_data();
+
 		if (empty($data))
 		{
 			return;
 		}
 
-		$old_bbcode_id = (int) $this->bbcode_exists($data['bbcode_tag']);
-		if($old_bbcode_id > NUM_CORE_BBCODES)
-		{
-			return;
-		}
-
-		// Remove conflicting BBCode
-		//$this->remove_bbcode($data['bbcode_tag']);
-
-		if(!array_key_exists('bbcode_id', $data))
-		{
-			$data['bbcode_id'] = (int) $this->bbcode_id();
-		}
-		
+		$data['bbcode_id'] = (int) $this->bbcode_id();
 		$data = array_replace(
 			$data,
 			$this->acp_bbcodes->build_regexp(
@@ -89,6 +84,9 @@ class helper
 				$data['bbcode_tpl']
 			)
 		);
+
+		// Get old BBCode ID
+		$old_bbcode_id = (int) $this->bbcode_exists($data['bbcode_tag']);
 
 		// Update or add BBCode
 		if ($old_bbcode_id > NUM_CORE_BBCODES)
@@ -106,6 +104,9 @@ class helper
 		$this->uninstall_bbcode($this->countdown_bbcode_data());
 		$this->uninstall_bbcode($this->post_bbcode_data());
 		$this->uninstall_bbcode($this->dice_bbcode_data());
+		$this->uninstall_bbcode($this->votecount_bbcode_data());
+		$this->uninstall_bbcode($this->votecountbbcode_bbcode_data());
+		$this->uninstall_bbcode($this->spoilerequals_bbcode_data());
 	}
 
 	/**
@@ -191,7 +192,8 @@ class helper
 
 		$sql = 'INSERT INTO ' . BBCODES_TABLE . '
 			' . $this->db->sql_build_array('INSERT', $data);
-
+			
+		
 		$this->db->sql_query($sql);
 
 	}
@@ -217,6 +219,7 @@ class helper
 		{
 			$sql = 'DELETE FROM ' . BBCODES_TABLE . '
 				WHERE bbcode_id = ' . $bbcode_id;
+			
 			$this->db->sql_query($sql);
 		}
 	}
@@ -243,6 +246,8 @@ class helper
 		$sql = 'UPDATE ' . BBCODES_TABLE . '
 			SET ' . $this->db->sql_build_array('UPDATE', $data) . '
 			WHERE bbcode_id = ' . $bbcode_id;
+			
+		
 		$this->db->sql_query($sql);
 	}
 
@@ -254,7 +259,6 @@ class helper
 	public function countdown_bbcode_data()
 	{
 		return [
-			'bbcode_id'		=> 1450,
 			'bbcode_tag'	=> 'countdown',
 			'bbcode_match'	=> '[countdown]{TEXT}[/countdown]',
 			'bbcode_tpl'	=> '<span class="countdown">{TEXT}</span>',
@@ -266,7 +270,6 @@ class helper
 	public function post_bbcode_data()
 	{
 		return [
-			'bbcode_id'		=> 1452,
 			'bbcode_tag'	=> 'post=',
 			'bbcode_match'	=> '[post=#{NUMBER}]{TEXT2}[/post]',
 			'bbcode_tpl'	=> '<a class="postlink post_tag" href="{SERVER_PROTOCOL}{SERVER_NAME}{SCRIPT_PATH}viewtopic.php?p={NUMBER}#p{NUMBER}">{TEXT2}</a>',
@@ -278,10 +281,62 @@ class helper
 	public function dice_bbcode_data()
 	{
 		return [
-			'bbcode_id'		=> 1451,
-			'bbcode_tag'	=> 'dice',
+			'bbcode_tag'	=> 'dice=',
 			'bbcode_match'	=> '[dice]{TEXT}[/dice]',
 			'bbcode_tpl'	=> '<span class="dice-tag-original">{TEXT}</span>',
+			'bbcode_helpline'	=> '',
+			'display_on_posting'	=> 1
+		];
+	}
+
+	private function base_votecount_tpl_string()
+	{
+		
+		$tplString = '<div style="margin:20px; margin-top:1px; margin-bottom:1px;"><div class="quotetitle"><b>Votecount: {TEXT2}</b> <input type="button" value="Show" style="width:45px;font-size:10px;margin:0px;padding:0px;" ';
+		
+		$tplString = $tplString . 'onclick="if (this.parentNode.parentNode.getElementsByTagName(\'div\')[1].getElementsByTagName(\'div\')[0].style.display != \'\') { this.parentNode.parentNode.getElementsByTagName(\'div\')[1].getElementsByTagName(\'div\')[0].style.display = \'\'; this.innerText = \'\'; this.value = \'Hide\'; } else { this.parentNode.parentNode.getElementsByTagName(\'div\')[1].getElementsByTagName(\'div\')[0].style.display = \'none\'; this.innerText = \'\'; this.value = \'Show\'; }" /></div><div class="quotecontent"><div style="display: none;">{TEXT}</div></div></div>';
+		
+		return $tplString;
+	}
+
+	
+	public function spoilerequals_bbcode_data()
+	{
+		$spoilerString = str_replace('Votecount','Spoiler', $this->base_votecount_tpl_string());
+		$spoilerString = str_replace('{TEXT}', '{TEXT1}', $spoilerString);
+		
+		
+		return [
+			'bbcode_tag'	=> 'spoiler=',
+			'bbcode_match'	=> '[spoiler={TEXT2}]{TEXT1}[/spoiler]',
+			'bbcode_tpl'	=> $spoilerString,
+			'bbcode_helpline'	=> '',
+			'display_on_posting'	=> 1
+		];
+	}
+	public function votecount_bbcode_data()
+	{
+		$votecountString = str_replace('{TEXT2}','', $this->base_votecount_tpl_string());
+		
+		return [
+			'bbcode_tag'	=> 'votecount',
+			'bbcode_match'	=> '[votecount]{TEXT}[/votecount]',
+			'bbcode_tpl'	=> $votecountString,
+			'bbcode_helpline'	=> '',
+			'display_on_posting'	=> 1
+		];
+	}
+
+
+	public function votecountbbcode_bbcode_data()
+	{
+		
+		$votecountString = str_replace('{TEXT2}','', $this->base_votecount_tpl_string());
+		$votecountString = str_replace('Votecount','VotecountBBCode', $votecountString);
+		return [
+			'bbcode_tag'	=> 'votecountBBCode',
+			'bbcode_match'	=> '[votecountBBCode]{TEXT}[/votecountBBCode]',
+			'bbcode_tpl'	=> $votecountString,
 			'bbcode_helpline'	=> '',
 			'display_on_posting'	=> 1
 		];
