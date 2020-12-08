@@ -13,6 +13,7 @@ namespace mafiascum\bbcodes\event;
  * @ignore
  */
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use s9e\TextFormatter\Configurator\Items\UnsafeTemplate;
 /**
  * Event listener
  */
@@ -123,7 +124,9 @@ class main_listener implements EventSubscriberInterface
 		$event['configurator']->tags['i']->template = '<div style="display: inline; font-style: italic"><xsl:apply-templates/></div>';
 		$event['configurator']->tags['u']->template = '<div style="display: inline; text-decoration: underline"><xsl:apply-templates/></div>';
 		$event['configurator']->tags['size']->template = '<div style="display: inline"><xsl:attribute name="style"><xsl:text>font-size: </xsl:text><xsl:value-of select="substring(@size, 1, 4)"/><xsl:text>%; line-height: normal</xsl:text></xsl:attribute><xsl:apply-templates/></div>';
-		$event['configurator']->tags['color']->template = '<div style="display: inline; color: {COLOR}"><xsl:apply-templates/></div>';
+		//TODO is this the right thing to do?
+		//$event['configurator']->tags['color']->template = new UnsafeTemplate($event['configurator']->templateNormalizer->normalizeTemplate('<span style="color: {COLOR}"><xsl:apply-templates/></span>'));
+		$event['configurator']->BBCodes->addCustom('[COLOR={COLOR}]{TEXT}[/COLOR]', new UnsafeTemplate($event['configurator']->templateNormalizer->normalizeTemplate('<div style="display: inline; color: {COLOR}"><xsl:apply-templates/></div>')));		
 	}
 
 	static public function filter_size(\s9e\TextFormatter\Parser\Tag $tag) {
