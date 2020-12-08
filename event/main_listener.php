@@ -116,6 +116,14 @@ class main_listener implements EventSubscriberInterface
 		{
 			$plugin->setRegexpLimit(PHP_INT_MAX);
 		}
+
+		// Change hardcoded bbcode templates to be <div> based so they can contain other <div> based tags
+		// it's <div>s all the way down now
+		$event['configurator']->tags['b']->template = '<div style="display: inline; font-weight: bold"><xsl:apply-templates/></div>';
+		$event['configurator']->tags['i']->template = '<div style="display: inline; font-style: italic"><xsl:apply-templates/></div>';
+		$event['configurator']->tags['u']->template = '<div style="display: inline; text-decoration: underline"><xsl:apply-templates/></div>';
+		$event['configurator']->tags['size']->template = '<div style="display: inline"><xsl:attribute name="style"><xsl:text>font-size: </xsl:text><xsl:value-of select="substring(@size, 1, 4)"/><xsl:text>%; line-height: normal</xsl:text></xsl:attribute><xsl:apply-templates/></div>';
+		$event['configurator']->tags['color']->template = '<div style="display: inline; color: {COLOR}"><xsl:apply-templates/></div>';
 	}
 
 	static public function filter_size(\s9e\TextFormatter\Parser\Tag $tag) {
